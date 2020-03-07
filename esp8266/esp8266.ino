@@ -16,6 +16,7 @@ AsyncWebServer server(80);
 char END_OF_RESPONSE = '\n';
 char END_OF_JSON = NULL;
 int bufferArraySize = 200;
+int pollingPeriod = 200;//time between polls to arduino in miliseconds
 
 
 void setup() {
@@ -32,27 +33,78 @@ void setup() {
 
     //get response from arduino 
     char buffer_array[bufferArraySize];
-    char temp;
+    char temp = '0';
     int index = 0;
+
+    //wait for data to start arriving
+    while(!Serial.available()){
+      delay(pollingPeriod);
+    }
     
-    while(!Serial.available()){}//wait for data to start arriving
     do{
       if(Serial.available() && index < bufferArraySize){
         buffer_array[index++] = temp = Serial.read();
       }
+      delay(50); //added to prevent soft reset
     }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
-    buffer_array[index] = NULL;//set last character to null
     
     //send data
-    request->send(200,"text/plain",buffer_array);
+    request->send(200,"application/json",buffer_array);
   });
 
+  server.on("/ack",HTTP_GET, [](AsyncWebServerRequest *request){
+      //start data collection for main functionality: to put data table of database for app refresh
+      Serial.print("a");
+
+      //get response from arduino 
+      char buffer_array[bufferArraySize];
+      char temp = '0';
+      int index = 0;
+  
+      //wait for data to start arriving
+      while(!Serial.available()){
+        delay(pollingPeriod);
+      }
+      
+      do{
+        if(Serial.available() && index < bufferArraySize){
+          buffer_array[index++] = temp = Serial.read();
+        }
+        delay(50); //added to prevent soft reset
+      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
+      
+      //send data
+      request->send(200,"application/json",buffer_array);
+   });
+
+   server.on("/end",HTTP_GET, [](AsyncWebServerRequest *request){
+      //start data collection for main functionality: to put data table of database for app refresh
+      Serial.print("e");
+
+      //get response from arduino 
+      char buffer_array[bufferArraySize];
+      char temp = '0';
+      int index = 0;
+  
+      //wait for data to start arriving
+      while(!Serial.available()){
+        delay(pollingPeriod);
+      }
+      
+      do{
+        if(Serial.available() && index < bufferArraySize){
+          buffer_array[index++] = temp = Serial.read();
+        }
+        delay(50); //added to prevent soft reset
+      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
+      
+      //send data
+      request->send(200,"application/json",buffer_array);
+   });
 
   // Start server
   server.begin();
-  
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 }
