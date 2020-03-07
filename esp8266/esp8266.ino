@@ -12,12 +12,13 @@ const char* password = "cheo";
 //Async web server on port 80
 AsyncWebServer server(80);
 
+
 void setup() {
   //serial
   Serial.begin(115200);
   
   //creating access point
-  WiFi.softAP("transport-team", "cheo");
+  WiFi.softAP(ssid, password);
   
   //Get IP address and display it over serial
   IPAddress IP = WiFi.softAPIP();
@@ -32,32 +33,21 @@ void setup() {
     Serial.print("\n");
 
     //wait for response from arduino 
-    //char buffer_array[200] = "started";
+    char termination = 'f';
+    int index = 0;
+    char buffer_array[200];
     
-    request->send(200,"text/plain","started");
-  });
-
-
-  server.on("/ack",HTTP_GET, [](AsyncWebServerRequest *request){
-    //start data collection for main functionality: to put data table of database for app refresh
-    Serial.print("a");
-    Serial.print("\n");
-
-    //wait for response from arduino 
-    //char buffer_array[200] = "started";
+    while(!Serial.available()){}//wait for data to start arriving
+    while(termination != NULL){
+      //read data untill null character is encountered
+      if(Serial.available()){
+        buffer_array[index++] = termination = Serial.read();
+      }
+    }
+    buffer_array[index] = NULL;//set last character to null
     
-    request->send(200,"text/plain","ack");
-  });
-
-    server.on("/end",HTTP_GET, [](AsyncWebServerRequest *request){
-    //start data collection for main functionality: to put data table of database for app refresh
-    Serial.print("e");
-    Serial.print("\n");
-
-    //wait for response from arduino 
-    
-    
-    request->send(200,"text/plain","end");
+    //send data as json
+    request->send(200,"application/json",buffer_array);
   });
 
 
