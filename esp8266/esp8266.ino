@@ -12,6 +12,11 @@ const char* password = "cheo";
 //Async web server on port 80
 AsyncWebServer server(80);
 
+//control variables
+char END_OF_RESPONSE = '\n';
+char END_OF_JSON = NULL;
+int bufferArraySize = 200;
+
 
 void setup() {
   //serial
@@ -19,35 +24,27 @@ void setup() {
   
   //creating access point
   WiFi.softAP(ssid, password);
-  
-  //Get IP address and display it over serial
-  IPAddress IP = WiFi.softAPIP();
-  Serial.println();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
 
   //server request handling
   server.on("/start",HTTP_GET, [](AsyncWebServerRequest *request){
     //start data collection for main functionality: to put data table of database for app refresh
     Serial.print("s");
-    Serial.print("\n");
 
-    //wait for response from arduino 
-    char termination = 'f';
+    //get response from arduino 
+    char buffer_array[bufferArraySize];
+    char temp;
     int index = 0;
-    char buffer_array[200];
     
     while(!Serial.available()){}//wait for data to start arriving
-    while(termination != NULL){
-      //read data untill null character is encountered
-      if(Serial.available()){
-        buffer_array[index++] = termination = Serial.read();
+    do{
+      if(Serial.available() && index < bufferArraySize){
+        buffer_array[index++] = temp = Serial.read();
       }
-    }
+    }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
     buffer_array[index] = NULL;//set last character to null
     
-    //send data as json
-    request->send(200,"application/json",buffer_array);
+    //send data
+    request->send(200,"text/plain",buffer_array);
   });
 
 
