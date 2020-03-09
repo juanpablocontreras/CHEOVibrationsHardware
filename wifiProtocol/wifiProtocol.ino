@@ -4,8 +4,11 @@
 #include <SoftwareSerial.h>
 #include "ArduinoJson.h"
 
+#define ARDUINO_SOFT_RX 2
+#define ARDUINO_SOFT_TX 3
+
 //esp8266 serial variables
-SoftwareSerial esp8266(2,3); //RX, TX
+SoftwareSerial esp8266(ARDUINO_SOFT_RX,ARDUINO_SOFT_TX); //RX, TX
 char tabletCommand;
 
 //variables for main database
