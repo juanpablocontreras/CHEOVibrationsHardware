@@ -28,6 +28,7 @@ void startDataAcquisition();
 void ackDataAcquisition();
 void endDataAcquisition();
 void getRaw();
+void getFiltered();
 void send_current_data();
 void send_error();
 
@@ -67,6 +68,10 @@ void loop() {
         getRaw();
       break;
 
+      case 'f':
+        getFiltered();
+      break;
+      
       default:
       break;
    }
@@ -110,6 +115,8 @@ void endDataAcquisition(){
 void getRaw(){
 
 }
+
+void getFiltered(){}
 
 void send_current_data(){
     Serial.println("sending current data...");

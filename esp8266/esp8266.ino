@@ -102,6 +102,61 @@ void setup() {
       request->send(200,"application/json",buffer_array);
    });
 
+
+
+     server.on("/raw",HTTP_GET, [](AsyncWebServerRequest *request){
+      //start data collection for main functionality: to put data table of database for app refresh
+      Serial.print("r");
+
+      //get response from arduino 
+      char buffer_array[bufferArraySize];
+      char temp = '0';
+      int index = 0;
+  
+      //wait for data to start arriving
+      while(!Serial.available()){
+        delay(pollingPeriod);
+      }
+      
+      do{
+        if(Serial.available() && index < bufferArraySize){
+          buffer_array[index++] = temp = Serial.read();
+        }
+        delay(50); //added to prevent soft reset
+      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
+      
+      //send data
+      request->send(200,"application/json",buffer_array);
+   });
+
+
+
+   server.on("/filtered",HTTP_GET, [](AsyncWebServerRequest *request){
+      //start data collection for main functionality: to put data table of database for app refresh
+      Serial.print("f");
+
+      //get response from arduino 
+      char buffer_array[bufferArraySize];
+      char temp = '0';
+      int index = 0;
+  
+      //wait for data to start arriving
+      while(!Serial.available()){
+        delay(pollingPeriod);
+      }
+      
+      do{
+        if(Serial.available() && index < bufferArraySize){
+          buffer_array[index++] = temp = Serial.read();
+        }
+        delay(50); //added to prevent soft reset
+      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
+      
+      //send data
+      request->send(200,"application/json",buffer_array);
+   });
+   
+
   // Start server
   server.begin();
 }
