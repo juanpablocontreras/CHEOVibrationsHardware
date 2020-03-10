@@ -28,6 +28,7 @@ void ackDataAcquisition();
 void endDataAcquisition();
 void getRaw();
 void getFiltered();
+void update_board();
 void send_current_data();
 void send_error();
 
@@ -77,13 +78,13 @@ void loop() {
 }
 
 
+/*~~~~~ Interface functions: provide Interface function def and impl (Top Layer) ~~~~~~*/
 void startDataAcquisition(){
     //start data collection for main functionality: to put data table of database for app refresh
     is_Communication_On = true;
     send_current_data();
     Serial.println("finished start");
 }
-
 void ackDataAcquisition(){
   if(is_Communication_On){
     send_current_data();
@@ -92,8 +93,6 @@ void ackDataAcquisition(){
   }
   Serial.println("finished ack");
 }
-
-
 void endDataAcquisition(){
     
     char buffer_array[100];
@@ -109,15 +108,15 @@ void endDataAcquisition(){
     is_Communication_On = false;
     Serial.println("finished end");
 }
-
-
-void getRaw(){
-
-}
-
+void getRaw(){}
 void getFiltered(){}
 
+/*~~~~~ functions that interface with sensor board, including wifi module (middle layer) ~~~~~~~~~~~~~*/
+void update_board(){
+}
+
 void send_current_data(){
+   //sends current data to esp8266 wifi module in JSON format using serial data communication
     Serial.println("sending current data...");
     
     char buffer_array[200];
@@ -137,7 +136,6 @@ void send_current_data(){
     esp8266.print(buffer_array);
     esp8266.print("\n");
 }
-
 void send_error(){
     char buffer_array[150];
     const size_t capacity = JSON_OBJECT_SIZE(1);
