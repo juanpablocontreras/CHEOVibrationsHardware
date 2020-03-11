@@ -1,9 +1,11 @@
 //Juan Pablo Contreras
 //works with Arduino Uno R3
+
+#include <Wire.h>
 #include <SoftwareSerial.h>
 #include "ArduinoJson.h"
 #include <MPU6050_tockn.h>
-#include <Wire.h>
+#include <Adafruit_BMP085.h>
 
 #define ARDUINO_SOFT_RX 4
 #define ARDUINO_SOFT_TX 5
@@ -20,13 +22,14 @@ bool is_Communication_On = false;
 SoftwareSerial esp8266(ARDUINO_SOFT_RX,ARDUINO_SOFT_TX); //RX, TX
 char tabletCommand;
 MPU6050 mpu6050(Wire);
+Adafruit_BMP085 bmp;
 
 //variables for main database
 int time_of_collection = 0;
 double temperature = 1;
 int sound_level = 2;
 double vibration_RMS;
-double pressure = 4;
+double pressure;
 double humidity = 5;
 
 //top level functions
@@ -58,6 +61,12 @@ void setup() {
   //accelerometer
   mpu6050.begin();
   mpu6050.calcGyroOffsets();
+
+  //BMP180
+  bmp.begin();
+
+  //update board once to get good values at start
+  update_board();
 }
 
 void loop() {
@@ -175,7 +184,9 @@ void update_vibraton_RMS(){
   //compute vibrations RMS
   vibration_RMS = sqrt((acc_x2sum + acc_y2sum + acc_z2sum)/3.0);
 }
-void update_pressure(){}
+void update_pressure(){
+  pressure = bmp.readPressure();
+}
 void send_current_data(){
    //sends current data to esp8266 wifi module in JSON format using serial data communication
     Serial.println("sending current data...");
