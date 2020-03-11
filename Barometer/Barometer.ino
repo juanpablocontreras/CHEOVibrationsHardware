@@ -6,6 +6,8 @@
 
 
 Adafruit_BMP085 bmp;
+double pressure;
+void update_pressure();
 
 void setup() {
   // put your setup code here, to run once:
@@ -15,14 +17,13 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.print("Temperature = ");
-  Serial.print(bmp.readTemperature());
-  Serial.println(" *C");
 
-  Serial.print("Pressure = ");
-  Serial.print(bmp.readPressure());
-  Serial.println(" Pa");
-
-  Serial.println();
+  update_pressure();
+  Serial.println(pressure);
   delay(2000);
+}
+
+
+void update_pressure(){
+  pressure = bmp.readPressure();
 }
