@@ -80,9 +80,7 @@ void send_humidity(){
   Serial.print("\n");  
 }
 void send_pressure(){
-  float pressure = 1023.7;
-  
-  Serial.print(pressure);
+  Serial.print(bmp.readPressure());
   Serial.print("\n");  
 }
 void send_vib(){
