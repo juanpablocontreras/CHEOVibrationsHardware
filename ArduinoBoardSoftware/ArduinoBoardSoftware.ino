@@ -9,6 +9,7 @@
 #define SERIAL_POLLING_PERIOD   20
 #define DHTPIN 2
 #define DHTTYPE DHT11
+#define SOUNDPIN A1
 
 //Global variables and control variables
 Adafruit_BMP085 bmp;
@@ -92,8 +93,8 @@ void send_vib(){
   Serial.print("\n");    
 }
 void send_sound(){
-  float sound = 875;
-  
+  float sound = analogRead(SOUNDPIN);
+  sound = 1024 - sound;
   Serial.print(sound);
   Serial.print("\n");  
 }
