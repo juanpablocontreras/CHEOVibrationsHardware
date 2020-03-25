@@ -15,6 +15,10 @@
 Adafruit_BMP085 bmp;
 DHT dht(DHTPIN, DHTTYPE);
 
+//sound
+float maxsound = 1024;
+float maxsoundtemp = 1024;
+
 //functions
 void send_time();
 void send_temp();
@@ -34,7 +38,18 @@ void setup() {
 void loop() {
 
   while(!Serial.available()){
-      delay(SERIAL_POLLING_PERIOD);
+    //read values that need time series information (depend on more than one measurement)
+
+    //Sound
+    maxsoundtemp = analogRead(SOUNDPIN);
+    if(maxsoundtemp < maxsound){
+      maxsound = maxsoundtemp;
+    }
+
+    
+    
+    
+    delay(SERIAL_POLLING_PERIOD);
   }
 
   char cmd = Serial.read();
@@ -93,8 +108,9 @@ void send_vib(){
   Serial.print("\n");    
 }
 void send_sound(){
-  float sound = analogRead(SOUNDPIN);
-  sound = 1024 - sound;
+  float sound = 1024 - maxsound;
+  maxsound = 1024;
+  maxsoundtemp = 1024;
   Serial.print(sound);
   Serial.print("\n");  
 }
