@@ -1,9 +1,15 @@
 //Board software using communication protocol 2.0
 #include <SoftwareSerial.h>
+#include <Adafruit_BMP085.h>
+#include <Wire.h>
+
+
 
 
 #define SERIAL_POLLING_PERIOD   20
 
+//Global variables and control variables
+Adafruit_BMP085 bmp;
 
 //functions
 void send_time();
@@ -17,10 +23,11 @@ void send_sound();
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  bmp.begin();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+
   while(!Serial.available()){
       delay(SERIAL_POLLING_PERIOD);
   }
@@ -62,9 +69,8 @@ void send_time(){
 }
 
 void send_temp(){
-  float temp = 21.5;
   
-  Serial.print(temp);
+  Serial.print(bmp.readTemperature());
   Serial.print("\n");
 }
 void send_humidity(){
