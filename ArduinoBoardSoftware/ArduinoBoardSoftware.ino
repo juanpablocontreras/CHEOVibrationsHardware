@@ -2,14 +2,17 @@
 #include <SoftwareSerial.h>
 #include <Adafruit_BMP085.h>
 #include <Wire.h>
-
+#include <DHT.h>
 
 
 
 #define SERIAL_POLLING_PERIOD   20
+#define DHTPIN 2
+#define DHTTYPE DHT11
 
 //Global variables and control variables
 Adafruit_BMP085 bmp;
+DHT dht(DHTPIN, DHTTYPE);
 
 //functions
 void send_time();
@@ -24,6 +27,7 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   bmp.begin();
+  dht.begin();
 }
 
 void loop() {
@@ -74,9 +78,7 @@ void send_temp(){
   Serial.print("\n");
 }
 void send_humidity(){
-  float humidity = 60.5;
-  
-  Serial.print(humidity);
+  Serial.print(dht.readHumidity());
   Serial.print("\n");  
 }
 void send_pressure(){
