@@ -3,10 +3,10 @@
 #include <Adafruit_BMP085.h>
 #include <Wire.h>
 #include <DHT.h>
+#include <MPU6050_tockn.h>
 
 
-
-#define SERIAL_POLLING_PERIOD   20
+#define SERIAL_POLLING_PERIOD   10
 #define DHTPIN 2
 #define DHTTYPE DHT11
 #define SOUNDPIN A1
@@ -14,10 +14,12 @@
 //Global variables and control variables
 Adafruit_BMP085 bmp;
 DHT dht(DHTPIN, DHTTYPE);
-
-//sound
+MPU6050 mpu6050(Wire);
 float maxsound = 1024;
 float maxsoundtemp = 1024;
+double vdv = 0;
+const float vdvExponent = 1.0/3.0;
+long numMPUmeasurements = 0;
 
 //functions
 void send_time();
@@ -31,8 +33,10 @@ void send_sound();
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  Wire.begin();
   bmp.begin();
   dht.begin();
+  mpu6050.begin();
 }
 
 void loop() {
@@ -46,8 +50,10 @@ void loop() {
       maxsound = maxsoundtemp;
     }
 
-    
-    
+    //accelerometer
+    mpu6050.update();
+    vdv += pow(pow(abs(mpu6050.getAccX()),3) + pow(abs(mpu6050.getAccY()),3) + pow(abs(mpu6050.getAccZ()-1),3),vdvExponent);
+    numMPUmeasurements++;
     
     delay(SERIAL_POLLING_PERIOD);
   }
@@ -89,7 +95,6 @@ void send_time(){
 }
 
 void send_temp(){
-  
   Serial.print(bmp.readTemperature());
   Serial.print("\n");
 }
@@ -102,15 +107,19 @@ void send_pressure(){
   Serial.print("\n");  
 }
 void send_vib(){
-  float vib = 0.45;
+  vdv = vdv/numMPUmeasurements;
   
-  Serial.print(vib);
-  Serial.print("\n");    
+  Serial.print(vdv);
+  Serial.print("\n"); 
+  
+  numMPUmeasurements = 0;
+  vdv = 0;   
 }
 void send_sound(){
   float sound = 1024 - maxsound;
-  maxsound = 1024;
-  maxsoundtemp = 1024;
+  
   Serial.print(sound);
   Serial.print("\n");  
+  maxsound = 1024;
+  maxsoundtemp = 1024;
 }
