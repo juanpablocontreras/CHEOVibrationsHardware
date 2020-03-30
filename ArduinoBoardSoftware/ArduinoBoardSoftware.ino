@@ -1,5 +1,4 @@
 //Board software using communication protocol 2.0
-#include <SoftwareSerial.h>
 #include <Adafruit_BMP085.h>
 #include <Wire.h>
 #include <DHT.h>
@@ -20,6 +19,9 @@ float maxsoundtemp = 1024;
 double vdv = 0;
 const float vdvExponent = 1.0/3.0;
 long numMPUmeasurements = 0;
+float x_calib = 0;
+float y_calib = 0;
+float z_calib = 0;
 
 //functions
 void send_time();
@@ -31,12 +33,17 @@ void send_sound();
 
 
 void setup() {
-  // put your setup code here, to run once:
+
   Serial.begin(9600);
   Wire.begin();
+  
   bmp.begin();
   dht.begin();
+  
   mpu6050.begin();
+  calibrateMPU6050();
+  
+  
 }
 
 void loop() {
@@ -50,14 +57,16 @@ void loop() {
       maxsound = maxsoundtemp;
     }
 
+    
+    
     //accelerometer
     mpu6050.update();
-    vdv += pow(pow(abs(mpu6050.getAccX()),3) + pow(abs(mpu6050.getAccY()),3) + pow(abs(mpu6050.getAccZ()-1),3),vdvExponent);
+    vdv += pow(pow(abs(mpu6050.getAccX()-x_calib),3) + pow(abs(mpu6050.getAccY()-y_calib),3) + pow(abs(mpu6050.getAccZ()-z_calib),3),vdvExponent);
     numMPUmeasurements++;
     
     delay(SERIAL_POLLING_PERIOD);
   }
-
+  
   char cmd = Serial.read();
 
   switch(cmd)
@@ -122,4 +131,11 @@ void send_sound(){
   Serial.print("\n");  
   maxsound = 1024;
   maxsoundtemp = 1024;
+}
+void calibrateMPU6050(){
+   mpu6050.calcGyroOffsets(); //calculates gyro offsets and sets rates of gyro and acc
+   mpu6050.update(); 
+   x_calib = mpu6050.getAccX();
+   y_calib = mpu6050.getAccY();
+   z_calib = mpu6050.getAccZ();
 }

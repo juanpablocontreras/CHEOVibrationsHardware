@@ -3,163 +3,111 @@
 
 #include "ESP8266WiFi.h"
 #include "ESPAsyncWebServer.h"
+#include "ArduinoJson.h"
+
+#define SERIAL_POLL_PERIOD 20
+#define LOOP_DELAY 20
 
 //network credentials
-const char* ssid = "transport-team";
-const char* password = "cheo";
+const char* ssid = "cheo-transport-team";
+const char* password = "che0_best_team";
 
-
-//Async web server on port 80
-AsyncWebServer server(80);
-
-//control variables
+//Global variables
 char END_OF_RESPONSE = '\n';
-char END_OF_JSON = NULL;
-int bufferArraySize = 200;
-int pollingPeriod = 200;//time between polls to arduino in miliseconds
+AsyncWebServer server(80);      //Async web server on port 80
 
+//function declarion
+String getTime();
+String getTemperature();
+String getHumidity();
+String getPressure();
+String getVibs();
+String getFromSerial();
 
 void setup() {
+
+  //built in led
+  pinMode(LED_BUILTIN,OUTPUT);
+  
   //serial
-  Serial.begin(115200);
+  Serial.begin(9600);
   
   //creating access point
   WiFi.softAP(ssid, password);
 
   //server request handling
-  server.on("/start",HTTP_GET, [](AsyncWebServerRequest *request){
-    //start data collection for main functionality: to put data table of database for app refresh
-    Serial.print("s");
+  server.on("/app",HTTP_GET, [](AsyncWebServerRequest *request){
 
-    //get response from arduino 
-    char buffer_array[bufferArraySize];
-    char temp = '0';
-    int index = 0;
-
-    //wait for data to start arriving
-    while(!Serial.available()){
-      delay(pollingPeriod);
-    }
+    //turn on LED
+    digitalWrite(LED_BUILTIN,HIGH);
     
-    do{
-      if(Serial.available() && index < bufferArraySize){
-        buffer_array[index++] = temp = Serial.read();
-      }
-      delay(50); //added to prevent soft reset
-    }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
+    //start data collection for main functionality: to put data table of database for app refresh
+    char jsonBuffer[200];
+    const size_t capacity = JSON_OBJECT_SIZE(6);
+    DynamicJsonDocument doc(capacity);
+    
+    doc["time"] = getTime();
+    doc["temperature"] = getTemperature();
+    doc["soundLevel"] = getSound();
+    doc["vibration"] = getVibs();
+    doc["pressure"] = getPressure();
+    doc["humidity"] = getHumidity();
     
     //send data
-    request->send(200,"application/json",buffer_array);
+    request->send(200,"application/json",jsonBuffer);
+
+    digitalWrite(LED_BUILTIN,LOW);
   });
-
-  server.on("/ack",HTTP_GET, [](AsyncWebServerRequest *request){
-      //start data collection for main functionality: to put data table of database for app refresh
-      Serial.print("a");
-
-      //get response from arduino 
-      char buffer_array[bufferArraySize];
-      char temp = '0';
-      int index = 0;
-  
-      //wait for data to start arriving
-      while(!Serial.available()){
-        delay(pollingPeriod);
-      }
-      
-      do{
-        if(Serial.available() && index < bufferArraySize){
-          buffer_array[index++] = temp = Serial.read();
-        }
-        delay(50); //added to prevent soft reset
-      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
-      
-      //send data
-      request->send(200,"application/json",buffer_array);
-   });
-
-   server.on("/end",HTTP_GET, [](AsyncWebServerRequest *request){
-      //start data collection for main functionality: to put data table of database for app refresh
-      Serial.print("e");
-
-      //get response from arduino 
-      char buffer_array[bufferArraySize];
-      char temp = '0';
-      int index = 0;
-  
-      //wait for data to start arriving
-      while(!Serial.available()){
-        delay(pollingPeriod);
-      }
-      
-      do{
-        if(Serial.available() && index < bufferArraySize){
-          buffer_array[index++] = temp = Serial.read();
-        }
-        delay(50); //added to prevent soft reset
-      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
-      
-      //send data
-      request->send(200,"application/json",buffer_array);
-   });
-
-
-
-     server.on("/raw",HTTP_GET, [](AsyncWebServerRequest *request){
-      //start data collection for main functionality: to put data table of database for app refresh
-      Serial.print("r");
-
-      //get response from arduino 
-      char buffer_array[bufferArraySize];
-      char temp = '0';
-      int index = 0;
-  
-      //wait for data to start arriving
-      while(!Serial.available()){
-        delay(pollingPeriod);
-      }
-      
-      do{
-        if(Serial.available() && index < bufferArraySize){
-          buffer_array[index++] = temp = Serial.read();
-        }
-        delay(50); //added to prevent soft reset
-      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
-      
-      //send data
-      request->send(200,"application/json",buffer_array);
-   });
-
-
-
-   server.on("/filtered",HTTP_GET, [](AsyncWebServerRequest *request){
-      //start data collection for main functionality: to put data table of database for app refresh
-      Serial.print("f");
-
-      //get response from arduino 
-      char buffer_array[bufferArraySize];
-      char temp = '0';
-      int index = 0;
-  
-      //wait for data to start arriving
-      while(!Serial.available()){
-        delay(pollingPeriod);
-      }
-      
-      do{
-        if(Serial.available() && index < bufferArraySize){
-          buffer_array[index++] = temp = Serial.read();
-        }
-        delay(50); //added to prevent soft reset
-      }while(temp != END_OF_RESPONSE && temp != END_OF_JSON);
-      
-      //send data
-      request->send(200,"application/json",buffer_array);
-   });
-   
 
   // Start server
   server.begin();
 }
 
 void loop() {
+  delay(LOOP_DELAY);
+}
+
+String getTime(){
+  Serial.print("T");
+  return getFromSerial();  
+}
+String getTemperature(){
+  Serial.print("t");
+  return getFromSerial();
+}
+String getHumidity(){
+  Serial.print("h");
+  return getFromSerial();  
+}
+String getPressure(){
+  Serial.print("p");
+  return getFromSerial();  
+}
+String getVibs(){
+  Serial.print("v");
+  return getFromSerial();    
+}
+String getSound(){
+  Serial.print("s");
+  return getFromSerial();    
+}
+String getFromSerial(){
+  String response = "";
+  char temp;
+
+  do
+  {
+      //wait for serial data
+      while(!Serial.available()){
+        delay(SERIAL_POLL_PERIOD); 
+      }
+
+      //serial data available
+      temp = Serial.read();
+      if(temp != END_OF_RESPONSE){
+         response += String(temp);
+      }
+  }while(temp != END_OF_RESPONSE);
+  
+  return response;
 }
